@@ -32,11 +32,27 @@ function getCurrentBlockName(x, y) {
 	return placedBlockNames[y][x];
 }
 
+function clearLine(lineY) {
+	for (var y = lineY; y > 0; --y)
+		for (var x = 0; x < windowWidth; ++x)
+			placedBlockNames[y][x] = placedBlockNames[y - 1][x];
+	for (var x = 0; x < windowWidth; ++x)
+		placedBlockNames[0][x] = 'empty';
+}
+
+function clearFullLines() {
+	for (var y = 0; y < windowHeight; ++y)
+		if (placedBlockNames[y].every((name) => name != 'empty'))
+			clearLine(y);
+}
+
 function insertCurrentPiece() {
 	for (var y = 0; y < windowHeight; ++y)
 		for (var x = 0; x < windowWidth; ++x)
 			placedBlockNames[y][x] = getCurrentBlockName(x, y);
 	currentPiece = null;
+
+	clearFullLines();
 }
 
 function updateBlocks() {
