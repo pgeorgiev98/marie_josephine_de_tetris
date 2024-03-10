@@ -2,15 +2,15 @@ const windowWidth = 7;
 const windowHeight = 10;
 
 const pieces = [
-	{name: 'o', x: 2, y: -2, pixels: [[1, 2, 0, 0], [3, 4, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]},
-	{name: 'i', x: 3, y: -4, pixels: [[1, 0, 0, 0], [2, 0, 0, 0], [3, 0, 0, 0], [4, 0, 0, 0]]},
-	{name: 't', x: 2, y: -2, pixels: [[1, 2, 3, 0], [0, 4, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]},
+	{name: 'o', x: 2, y: -2, angle: 0, pixels: [[0, 0, 0, 0], [0, 1, 2, 0], [0, 3, 4, 0], [0, 0, 0, 0]]},
+	{name: 'i', x: 3, y: -4, angle: 0, pixels: [[0, 1, 0, 0], [0, 2, 0, 0], [0, 3, 0, 0], [0, 4, 0, 0]]},
+	{name: 't', x: 2, y: -2, angle: 0, pixels: [[0, 0, 0, 0], [1, 2, 3, 0], [0, 4, 0, 0], [0, 0, 0, 0]]},
 ];
 var currentPiece = null;
 var blockTags = null;
-var placedBlockNames = null;
+var placedBlocks = null;
 
-function setBlock(x, y, imageName) {
+function setBlock(x, y, imageName, angle) {
 	if (!blockTags[y][x]) {
 		var img = document.createElement('img');
 		img.style.position = 'absolute';
@@ -20,75 +20,85 @@ function setBlock(x, y, imageName) {
 		blockTags[y][x] = img;
 	}
 	blockTags[y][x].src = 'images/' + imageName + '.png';
+	blockTags[y][x].style.transform = 'rotate(' + angle + 'deg)';
 }
 
-function getCurrentBlockName(x, y) {
+function getCurrentBlock(x, y) {
 	if (currentPiece) {
 		var localX = x - currentPiece.x;
 		var localY = y - currentPiece.y;
 		if (localX >= 0 && localX < 4 && localY >= 0 && localY < 4 && currentPiece.pixels[localY][localX])
-			return currentPiece.name + '_' + currentPiece.pixels[localY][localX];
+			return {name: currentPiece.name + '_' + currentPiece.pixels[localY][localX], angle: currentPiece.angle};
 	}
-	return placedBlockNames[y][x];
+	return placedBlocks[y][x];
 }
 
 function clearLine(lineY) {
 	for (var y = lineY; y > 0; --y)
 		for (var x = 0; x < windowWidth; ++x)
-			placedBlockNames[y][x] = placedBlockNames[y - 1][x];
+			placedBlocks[y][x] = placedBlocks[y - 1][x];
 	for (var x = 0; x < windowWidth; ++x)
-		placedBlockNames[0][x] = 'empty';
+		placedBlocks[0][x] = {name: 'empty', angle: 0};
 }
 
 function clearFullLines() {
 	for (var y = 0; y < windowHeight; ++y)
-		if (placedBlockNames[y].every((name) => name != 'empty'))
+		if (placedBlocks[y].every((block) => block.name != 'empty'))
 			clearLine(y);
 }
 
 function insertCurrentPiece() {
 	for (var y = 0; y < windowHeight; ++y)
 		for (var x = 0; x < windowWidth; ++x)
-			placedBlockNames[y][x] = getCurrentBlockName(x, y);
+			placedBlocks[y][x] = getCurrentBlock(x, y);
 	currentPiece = null;
 
 	clearFullLines();
 }
 
 function updateBlocks() {
-	for (var y = 0; y < windowHeight; ++y)
-		for (var x = 0; x < windowWidth; ++x)
-			setBlock(x, y, getCurrentBlockName(x, y));
+	for (var y = 0; y < windowHeight; ++y) {
+		for (var x = 0; x < windowWidth; ++x) {
+			var block = getCurrentBlock(x, y);
+			setBlock(x, y, block.name, block.angle);
+		}
+	}
 }
 
 function getPieceWidth() {
-	for (var x = 3; x >= 0; --x)
-		for (var y = 0; y < 4; ++y)
-			if (currentPiece.pixels[y][x])
-				return x + 1;
+	return getPieceMaxX() - getPieceMinX() + 1;
 }
 
 function getPieceHeight() {
-	for (var y = 3; y >= 0; --y)
-		for (var x = 0; x < 4; ++x)
-			if (currentPiece.pixels[y][x])
-				return y + 1;
+	return getPieceMaxY() - getPieceMinY() + 1;
 }
 
 function getPieceMinX() {
-	return currentPiece.x;
+	for (var x = 0; x < 4; ++x)
+		for (var y = 0; y < 4; ++y)
+			if (currentPiece.pixels[y][x])
+				return currentPiece.x + x;
 }
 
 function getPieceMaxX() {
-	return currentPiece.x + getPieceWidth() - 1;
+	for (var x = 3; x >= 0; --x)
+		for (var y = 0; y < 4; ++y)
+			if (currentPiece.pixels[y][x])
+				return currentPiece.x + x;
 }
 
 function getPieceMinY() {
-	return currentPiece.y;
+	for (var y = 0; y < 4; ++y)
+		for (var x = 0; x < 4; ++x)
+			if (currentPiece.pixels[y][x])
+				return currentPiece.y + y;
 }
 
 function getPieceMaxY() {
-	return currentPiece.y + getPieceHeight() - 1;
+	for (var y = 3; y >= 0; --y)
+		for (var x = 0; x < 4; ++x)
+			if (currentPiece.pixels[y][x])
+				return currentPiece.y + y;
 }
 
 function isValidPosition() {
@@ -100,7 +110,7 @@ function isValidPosition() {
 			if (p.pixels[localY][localX]) {
 				if (localY + p.y >= windowHeight)
 					return false;
-				if (localY + p.y >= 0 && placedBlockNames[localY + p.y][localX + p.x] != 'empty')
+				if (localY + p.y >= 0 && placedBlocks[localY + p.y][localX + p.x].name != 'empty')
 					return false;
 			}
 		}
@@ -108,15 +118,35 @@ function isValidPosition() {
 	return true;
 }
 
+function rotateCW() {
+	var size = Math.max(getPieceWidth(), getPieceHeight()) == 3 ? 3 : 4;
+	var newPixels = [[], [], [], []];
+	for (var y = 0; y < size; ++y)
+		for (var x = 0; x < size; ++x)
+			newPixels[y][x] = currentPiece.pixels[size - x - 1][y];
+	currentPiece.pixels = newPixels;
+	currentPiece.angle += 90;
+}
+
+function rotateCCW() {
+	var size = Math.max(getPieceWidth(), getPieceHeight()) == 3 ? 3 : 4;
+	var newPixels = [[], [], [], []];
+	for (var y = 0; y < size; ++y)
+		for (var x = 0; x < size; ++x)
+			newPixels[y][x] = currentPiece.pixels[x][size - y - 1];
+	currentPiece.pixels = newPixels;
+	currentPiece.angle -= 90;
+}
+
 function restart() {
 	document.getElementById('blocks').innerHTML = '';
 	blockTags = [];
-	placedBlockNames = [];
+	placedBlocks = [];
 	for (var y = 0; y < windowHeight; ++y) {
 		blockTags[y] = [];
-		placedBlockNames[y] = [];
+		placedBlocks[y] = [];
 		for (var x = 0; x < windowWidth; ++x)
-			placedBlockNames[y][x] = 'empty';
+			placedBlocks[y][x] = {name: 'empty', angle: 0};
 	}
 	updateBlocks();
 }
@@ -151,6 +181,18 @@ function handleKeyPress(event) {
 				updateBlocks();
 			else
 				currentPiece.x -= 1;
+		} else if (event.key === 'w') {
+			rotateCCW();
+			if (isValidPosition())
+				updateBlocks();
+			else
+				rotateCW();
+		} else if (event.key === 's') {
+			rotateCW();
+			if (isValidPosition())
+				updateBlocks();
+			else
+				rotateCCW();
 		}
 	}
 }
