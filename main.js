@@ -2,13 +2,13 @@ const windowWidth = 7;
 const windowHeight = 10;
 
 const pieces = [
-	{name: 'o', x: 2, y: -2, angle: 0, pixels: [[0, 0, 0, 0], [0, 1, 2, 0], [0, 3, 4, 0], [0, 0, 0, 0]]},
-	{name: 'i', x: 3, y: -4, angle: 0, pixels: [[0, 1, 0, 0], [0, 2, 0, 0], [0, 3, 0, 0], [0, 4, 0, 0]]},
-	{name: 't', x: 2, y: -2, angle: 0, pixels: [[0, 0, 0, 0], [1, 2, 3, 0], [0, 4, 0, 0], [0, 0, 0, 0]]},
-	{name: 'l', x: 2, y: -2, angle: 0, pixels: [[4, 0, 0, 0], [3, 0, 0, 0], [1, 2, 0, 0], [0, 0, 0, 0]]},
-	{name: 'j', x: 2, y: -2, angle: 0, pixels: [[0, 4, 0, 0], [0, 3, 0, 0], [1, 2, 0, 0], [0, 0, 0, 0]]},
-	{name: 's', x: 2, y: -2, angle: 0, pixels: [[0, 3, 4, 0], [1, 2, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]},
-	{name: 'z', x: 2, y: -2, angle: 0, pixels: [[1, 2, 0, 0], [0, 3, 4, 0], [0, 0, 0, 0], [0, 0, 0, 0]]},
+	{name: 'o', x: 0, y: 0, angle: 0, pixels: [[0, 0, 0, 0], [0, 1, 2, 0], [0, 3, 4, 0], [0, 0, 0, 0]]},
+	{name: 'i', x: 0, y: 0, angle: 0, pixels: [[0, 1, 0, 0], [0, 2, 0, 0], [0, 3, 0, 0], [0, 4, 0, 0]]},
+	{name: 't', x: 0, y: 0, angle: 0, pixels: [[0, 0, 0, 0], [1, 2, 3, 0], [0, 4, 0, 0], [0, 0, 0, 0]]},
+	{name: 'l', x: 0, y: 0, angle: 0, pixels: [[4, 0, 0, 0], [3, 0, 0, 0], [1, 2, 0, 0], [0, 0, 0, 0]]},
+	{name: 'j', x: 0, y: 0, angle: 0, pixels: [[0, 4, 0, 0], [0, 3, 0, 0], [1, 2, 0, 0], [0, 0, 0, 0]]},
+	{name: 's', x: 0, y: 0, angle: 0, pixels: [[0, 3, 4, 0], [1, 2, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]},
+	{name: 'z', x: 0, y: 0, angle: 0, pixels: [[1, 2, 0, 0], [0, 3, 4, 0], [0, 0, 0, 0], [0, 0, 0, 0]]},
 ];
 var currentPiece = null;
 var blockTags = null;
@@ -158,6 +158,8 @@ function restart() {
 function mainLoop() {
 	if (!currentPiece) {
         currentPiece = Object.assign({}, pieces[Math.floor(Math.random() * pieces.length)]);
+        currentPiece.y = -getPieceMaxY() - 1;
+        currentPiece.x -= Math.ceil((getPieceMinX() + getPieceMaxX() - windowWidth) / 2);
 	} else {
 		currentPiece.y += 1;
 		if (!isValidPosition()) {
