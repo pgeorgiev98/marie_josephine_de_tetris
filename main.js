@@ -15,16 +15,31 @@ var blockTags = null;
 var placedBlocks = null;
 
 function setBlock(x, y, imageName, angle) {
-	if (!blockTags[y][x]) {
-		var img = document.createElement('img');
+	var bg = document.getElementById('background');
+	var w = bg.offsetWidth;
+	var h = bg.offsetHeight;
+	var xOffset = 0, yOffset = 0;
+	if (w / 100 * windowHeight / windowWidth > windowHeight) {
+		var blockSize = h / windowHeight;
+		xOffset = (w - blockSize * windowWidth) / 2;
+	} else {
+		var blockSize = w / windowWidth;
+		yOffset = (h - blockSize * windowHeight) / 2;
+	}
+
+	var img = blockTags[y][x];
+	if (!img) {
+		img = document.createElement('img');
 		img.style.position = 'absolute';
-		img.style.left = (x * 100) + 'px';
-		img.style.top = (y * 100) + 'px';
 		document.getElementById('blocks').appendChild(img);
 		blockTags[y][x] = img;
 	}
-	blockTags[y][x].src = 'images/' + imageName + '.png';
-	blockTags[y][x].style.transform = 'rotate(' + angle + 'deg)';
+	img.style.width = (blockSize + 1) + 'px';
+	img.style.height = (blockSize + 1) + 'px';
+	img.style.left = (xOffset + blockSize * x) + 'px';
+	img.style.top = (yOffset + blockSize * y) + 'px';
+	img.src = 'images/' + imageName + '.png';
+	img.style.transform = 'rotate(' + angle + 'deg)';
 }
 
 function getCurrentBlock(x, y) {
@@ -208,3 +223,5 @@ document.addEventListener('DOMContentLoaded', function () {
 	setInterval(mainLoop, 1000);
 	document.addEventListener('keydown', handleKeyPress);
 });
+
+window.addEventListener('resize', updateBlocks);
